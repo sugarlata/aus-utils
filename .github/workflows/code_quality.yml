@@ -1,0 +1,38 @@
+name: Ensure Linting Rules Pass
+
+on:
+  push:
+
+permissions:
+  contents: read
+
+jobs:
+  lint-type-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "0.4.22"
+
+      - name: Setup Python
+        run: uv python install ${{matrix.python-version}}
+
+      - name: Install Project Dependencies
+        run: uv sync --all-extras --dev
+
+      - name: Run Python Linting
+        run: uv run ruff check
+        
+      - name: Run Python Type Checking
+        run: uv run mypy .
+      
+      - name: Run Python Tests
+        run: PYTHONPATH=$(pwd) uv run pytest
